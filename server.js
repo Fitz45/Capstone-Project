@@ -98,8 +98,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint (moved to /api/health for consistency)
+app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
