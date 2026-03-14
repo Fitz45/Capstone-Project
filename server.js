@@ -660,3 +660,23 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`FITZ ESEALS Backend running on port ${PORT}`);
 });
+// HTTP Proxy endpoint for ESP32/SIM800L
+const axios = require('axios');
+app.post('/proxy', async (req, res) => {
+  const { targetUrl, method = 'POST', headers = {}, body = {} } = req.body;
+  if (!targetUrl) {
+    return res.status(400).json({ error: 'targetUrl is required' });
+  }
+  try {
+    const response = await axios({
+      url: targetUrl,
+      method,
+      headers,
+      data: body,
+      timeout: 10000
+    });
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message, details: error.response?.data });
+  }
+});
