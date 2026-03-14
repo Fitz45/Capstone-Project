@@ -292,13 +292,24 @@ app.post('/api/locations', async (req, res) => {
     if (latitude === undefined && req.body.lat !== undefined) latitude = req.body.lat;
     if (longitude === undefined && req.body.lon !== undefined) longitude = req.body.lon;
 
+    // Validation based on SQL schema
+    if (!seal_id || typeof seal_id !== 'string') {
+      return res.status(400).json({ error: 'seal_id is required and must be a string (UUID)' });
+    }
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ error: 'latitude and longitude are required' });
+    }
+    if (isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+      return res.status(400).json({ error: 'latitude and longitude must be numbers' });
+    }
+
     const { data, error } = await supabase.from('locations').insert([
       {
         seal_id,
-        latitude,
-        longitude,
-        accuracy,
-        altitude,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        accuracy: accuracy !== undefined ? Number(accuracy) : null,
+        altitude: altitude !== undefined ? Number(altitude) : null,
         created_at: new Date(),
       },
     ]);
@@ -344,6 +355,17 @@ app.get('/api/locations/:sealId', async (req, res) => {
 app.post('/api/seal-events', async (req, res) => {
   try {
     const { seal_id, event_type, description } = req.body;
+
+    // Validation based on SQL schema
+    if (!seal_id || typeof seal_id !== 'string') {
+      return res.status(400).json({ error: 'seal_id is required and must be a string (UUID)' });
+    }
+    if (!event_type || typeof event_type !== 'string') {
+      return res.status(400).json({ error: 'event_type is required and must be a string' });
+    }
+    if (!description || typeof description !== 'string') {
+      return res.status(400).json({ error: 'description is required and must be a string' });
+    }
 
     const { data, error } = await supabase.from('seal_events').insert([
       {
