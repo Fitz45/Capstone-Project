@@ -287,7 +287,6 @@ app.get('/api/seals/detail/:sealId', async (req, res) => {
 app.post('/api/locations', async (req, res) => {
   try {
     const { seal_id, accuracy, altitude } = req.body;
-    // Accept both lat/lon and latitude/longitude
     let latitude = req.body.latitude;
     let longitude = req.body.longitude;
     if (latitude === undefined && req.body.lat !== undefined) latitude = req.body.lat;
@@ -305,10 +304,10 @@ app.post('/api/locations', async (req, res) => {
     ]);
 
     if (error) {
-      return res.status(400).json({ error: error.message });
+      console.error('Location Insert Error:', error, 'Request Body:', req.body);
+      return res.status(400).json({ error: error.message, details: error, request: req.body });
     }
 
-    // Update seal's last location and updated_at
     await supabase
       .from('seals')
       .update({ updated_at: new Date() })
@@ -356,7 +355,8 @@ app.post('/api/seal-events', async (req, res) => {
     ]);
 
     if (error) {
-      return res.status(400).json({ error: error.message });
+      console.error('Seal Event Insert Error:', error, 'Request Body:', req.body);
+      return res.status(400).json({ error: error.message, details: error, request: req.body });
     }
 
     res.json({ message: 'Event recorded', event: data[0] });
